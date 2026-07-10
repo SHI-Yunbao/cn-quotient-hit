@@ -1,0 +1,21 @@
+# Rocq build products
+*.vo
+*.vok
+*.vos
+*.glob
+.*.aux
+
+# LaTeX build products
+*.aux
+*.fdb_latexmk
+*.fls
+*.log
+*.out
+*.xdv
+
+# Local editor and operating-system files
+.DS_Store
+.vscode/
+
+# The release includes the reviewed anonymous PDF only.
+work/paper/submission-author.*
