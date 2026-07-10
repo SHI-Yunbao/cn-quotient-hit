@@ -1,0 +1,11 @@
+cff-version: 1.2.0
+message: "If you use this artifact, please cite the associated manuscript and this release."
+title: "CN-as-setoids to CNs-as-quotient-HITs: Rocq Artifact"
+authors:
+  - family-names: Shi
+    given-names: Yunbao
+    orcid: "https://orcid.org/0000-0002-1049-0221"
+version: 0.1.0
+date-released: 2026-07-10
+license: MIT
+repository-code: "https://github.com/SHI-Yunbao/cn-quotient-hit"
