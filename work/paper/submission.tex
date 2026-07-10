@@ -1,0 +1,530 @@
+\documentclass[11pt]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{array,booktabs,float,tabularx}
+\usepackage[round,authoryear]{natbib}
+\usepackage{hyperref}
+
+\title{Internalizing Common-Noun Identity Criteria with Quotient Higher Inductive Types}
+\author{Anonymous manuscript}
+\date{2026-07-10}
+
+\newcommand{\CN}{\mathsf{CN}}
+\newcommand{\Raw}{\mathsf{Raw}}
+\newcommand{\IC}{\mathsf{IC}}
+\newcommand{\Quot}[2]{#1/{#2}}
+\newcommand{\embed}[1]{\lvert #1\rvert}
+\newcommand{\sem}[1]{[\![#1]\!]}
+\newcommand{\Prop}{\mathsf{Prop}}
+\newcommand{\keywords}[1]{\par\medskip\noindent\textbf{Keywords:} #1}
+\newtheorem{theorem}{Theorem}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Common-noun semantics needs criteria of identity as well as criteria of
+application.  We examine whether a common noun first represented as a setoid
+$(\Raw_N,\IC_N)$ can instead be presented as the quotient higher inductive type
+$\Quot{\Raw_N}{\IC_N}$, with its identity criterion internalized as equality
+paths.  The contribution is deliberately bounded.  We specify the
+non-dependent quotient interface required for identity-respecting,
+set-valued observations; prove a conditional converse representation theorem;
+and provide a Rocq-checked fragment whose global assumptions are explicitly
+audited.  The theorem requires function extensionality, proof irrelevance for
+respectfulness witnesses, and proposition-valued quotient induction.  Three
+linguistic tests connect the interface to semantic concerns: passenger identity
+is finer than person identity, modifier evidence need not create extra noun
+instances, and physical and informational observations of a book descend
+separately while book identity remains conjunctive.  The paper does not claim a
+native quotient-HIT implementation in Rocq or a general theory of dot-type
+coercions.  It offers a reproducible semantic application of quotient-HIT
+ideas with precise formal boundaries.
+\end{abstract}
+
+\keywords{common nouns as types, identity criteria, quotient higher inductive types, type-theoretical semantics, Rocq formalization, copredication}
+
+\section{Introduction}
+
+The CN-as-types programme is motivated by the idea that common nouns carry not
+only criteria of application but also criteria of identity.  A predicate may
+classify an object as a passenger or a book; a common noun analysis must also
+say when two such objects count as the same passenger or the same book.  Setoid
+semantics expresses this point directly by assigning a carrier together with
+an equivalence relation.  That representation is precise, but it creates a
+bookkeeping burden: every semantic operation must be paired with a proof that
+it respects the relevant equivalence relation.
+
+The proposed transition, CN-as-setoids to CNs-as-quotient-HITs, replaces
+this external bookkeeping by a quotient-HIT presentation.  For a common noun
+$N$, let $\Raw_N$ be the raw carrier and let
+$\IC_N:\Raw_N\to\Raw_N\to\Prop$ be the identity criterion.  The intended
+semantic object is:
+\[
+  \sem{N} = \Quot{\Raw_N}{\IC_N}.
+\]
+The contribution is not a claim that all of homotopy type theory should be
+imported into lexical semantics.  It is a focused claim about quotient HITs as
+a way to make identity criteria internal to common-noun types.
+
+\section{Related Work and Position}
+
+The linguistic starting point is the CN-as-types programme, in which a common
+noun has both a criterion of application and a criterion of identity
+\cite{Luo2012CN}.  Subsequent work on individuation criteria and dot-types
+makes the pressure on the identity component especially clear for modification
+and copredication \cite{ChatzikyriakidisLuo2015,ChatzikyriakidisLuo2018}.
+Our proposal does not replace that analysis.  It asks a narrower question:
+given a setoid presentation already motivated by the semantics, can its
+identity relation be represented as equality paths in a quotient common-noun
+type?
+
+On the type-theoretic side, quotient types are a standard higher-inductive
+construction \cite{HoTTBook}, and general semantic accounts of higher
+inductive types explain why their constructors and eliminators may be treated
+as a coherent interface \cite{LumsdaineShulman2017}.  Cubical work supplies an
+important computational setting for HITs \cite{CoquandHuberMortberg2018}.
+This paper does not contribute a new HIT implementation or a new metatheory of
+quotients.  Its contribution is instead a scoped semantic application: it
+identifies the quotient interface needed by common-noun identity criteria,
+separates the conditional converse from a stronger unproved claim, and checks
+the resulting fragment in Rocq.
+
+More specifically, the contribution is neither a replacement for the setoid
+analysis nor a re-description of quotient types in linguistic vocabulary.
+The setoid analysis supplies the noun-specific identity criterion; the present
+proposal specifies how that criterion is internalized as paths and how
+identity-respecting observations descend.  The dot-type literature supplies
+the motivation for distinct physical and informational observations of a book;
+the present fragment isolates the quotient-recursion obligations that license
+those observations.  Finally, the type-theoretic literature supplies quotient
+constructors and eliminators; this paper states the exact non-dependent,
+set-valued interface used by the semantics and proves a conditional converse
+with its assumptions exposed.  These three links are tested by the
+passenger/person-times, modifier-evidence, and book/copredication cases below,
+rather than asserted as a general theory of coercion or dependent elimination.
+
+\section{Formal Interface}
+
+The quotient presentation has three constructors or structural principles:
+\[
+\begin{array}{rcl}
+  \embed{-} &:& \Raw_N \to \Quot{\Raw_N}{\IC_N},\\
+  \mathsf{glue} &:&
+    \prod_{x,y:\Raw_N}\IC_N(x,y)\to \embed{x}=\embed{y},\\
+  \mathsf{trunc} &:& \mathsf{isSet}(\Quot{\Raw_N}{\IC_N}).
+\end{array}
+\]
+The semantic interface uses these principles in three roles.  First,
+identity-criterion proofs become paths in the quotient.  Second, functions
+between raw carriers that respect the relevant identity criteria factor as
+maps between quotient common-noun types.  Third, set-valued observations and
+projections descend when their raw definitions respect the identity criterion.
+
+This interface is intentionally non-dependent.  It does not claim that every
+dot-type projection, coercive subtyping rule, or dependent elimination
+principle follows automatically.  Those stronger principles should be treated
+as separate semantic or metatheoretic assumptions.
+
+\section{Main Result and Proof Status}
+
+For a common-noun setoid $C$ and a non-dependent set-valued target $B$, write
+\[
+  \mathsf{Obs}_{R}(C,B)
+    = \sum_{f:\Raw_C\to B}\mathsf{respects}_C(f),
+  \qquad
+  \mathsf{Obs}_{Q}(C,B) = (\Quot{\Raw_C}{\IC_C}\to B).
+\]
+Precomposition with $\embed{-}$ defines
+$\Phi:\mathsf{Obs}_{Q}(C,B)\to\mathsf{Obs}_{R}(C,B)$; quotient recursion
+defines $\Psi$ in the other direction.
+
+\begin{theorem}[Conditional converse representation]
+Assume function extensionality, proof irrelevance for the respectfulness
+field, and proposition-valued induction over the quotient presentation.
+Then $\Phi\circ\Psi=\mathsf{id}$ and
+$\Psi\circ\Phi=\mathsf{id}$.
+\end{theorem}
+
+\begin{proof}[Checked proof decomposition]
+Every use of quotient recursion carries a setness witness for $B$.  The raw round trip follows pointwise from its beta rule;
+function extensionality identifies the raw functions and proof irrelevance
+identifies their respectfulness witnesses.  For the quotient round trip,
+proposition-valued quotient induction reduces the equality to embedded
+generators, where the same beta rule applies; function extensionality then
+identifies the quotient observations.  Rocq checks the packaged result as
+\path{conditional_observation_equivalence}.
+\end{proof}
+
+The main representation claim is conservative.  In the checked fragment, the
+quotient-HIT presentation internalizes the identity criterion: identity proofs
+in the setoid become paths in the quotient, and respectful set-valued
+observations factor through quotient elimination.  The checked converse theorem is conditional:
+the theorem above has exactly the three displayed premises.  No unconditional
+converse axiom remains in the Rocq file.
+
+\begin{table}[H]
+\centering
+\small
+\caption{Submission claims and their current machine-checked status.}
+\label{tab:proof-status}
+\begin{tabularx}{\textwidth}{@{}>{\raggedright\arraybackslash}p{0.19\textwidth}>{\raggedright\arraybackslash}p{0.31\textwidth}X@{}}
+\toprule
+Claim & Rocq evidence & Status and boundary \\
+\midrule
+Identity internalization &
+\path{passenger_identity_path}; \path{book_identity_needs_both_criteria} &
+Checked from the quotient path constructor. \\
+Respectful factorization &
+\path{lifted_observation_adequacy}; book projection lemmas &
+Checked from quotient recursion with an explicit set target, its beta rule, and respectfulness. \\
+Converse representation &
+\path{conditional_observation_equivalence} &
+Checked under function extensionality, proof irrelevance, and quotient
+proposition induction. \\
+Unconditional converse & No Rocq declaration &
+Not claimed; it remains a possible strengthening rather than an axiom. \\
+Global assumptions & \path{AssumptionAudit.v} &
+Exactly \path{qtype}, \path{embed}, \path{glue}, \path{qrec}, and
+\path{qrec_beta}; all await native or library replacement. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+The residual unconditional converse remains proof debt rather than a theorem
+claimed by this draft.  This boundary is important for review.  The paper is
+not a normalization or canonicity theorem for UTT with HITs; it is a semantic
+adequacy claim for non-dependent set-valued observations out of quotient
+common-noun types.
+
+% Verification anchor: SCI-SUBMISSION-DRAFT-SKELETON.
+% Verification anchor: SCI-DRAFT-MAIN-RESULT-SPINE.
+% Verification anchor: SCI-CONVERSE-MAIN-CONDITIONAL.
+% Verification anchors: SCI-CONVERSE-AXIOM-FREE-CONDITIONAL; SCI-QREC-SET-VALUED-TARGET; SCI-MAIN-THEOREM-ASSUMPTION-AUDIT.
+% validation command: make -C work/formal proof-assistant-coq
+\section{Linguistic Tests}
+
+The following three tests make the semantic role of the quotient explicit.
+Each begins with a raw carrier and an identity criterion; the quotient then
+turns a proof of that criterion into a path.  Table~\ref{tab:case-artifacts}
+records the corresponding checked lemmas.
+
+\subsection{Passenger/person and person-times}
+
+Let a passenger token record both a person and a journey:
+\[
+  \Raw_{\mathsf{Passenger}} =
+  \mathsf{Person}\times\mathsf{Journey},
+  \qquad
+  (p,j)\;\IC_{\mathsf{Passenger}}\;(p',j')
+  \quad\text{iff}\quad p=p'\ \wedge\ j=j'.
+\]
+For one person $p$ and two distinct journeys $j_1\neq j_2$, the raw tokens
+$(p,j_1)$ and $(p,j_2)$ have the same person component but do not satisfy the
+passenger identity criterion.  This is the intended person-times effect:
+person equality alone is not a witness for passenger identity.  The Rocq lemma
+\path{same_person_is_not_passenger_identity} checks this minimal countermodel,
+while \path{passenger_identity_requires_journey} extracts journey equality
+from any passenger-identity witness.  Conversely,
+\path{passenger_identity_path} sends a full identity witness to equality in
+the passenger quotient.  The example does not claim that the two quotient
+terms are provably unequal; that would require an additional separation
+principle.
+
+Concretely, take one traveller with two distinct journey tokens, for example
+two bus rides on different occasions.  The analysis preserves equality of the
+traveller component while withholding a passenger-identity witness until the
+journey components also agree.  It therefore models a person-times contrast
+without inferring that the two tokens represent two persons.
+
+\subsection{Modified common nouns}
+
+For a modifier $M$ over a base noun $N$, the raw carrier records an individual
+and modifier evidence:
+\[
+  \Raw_{M N}=\sum_{x:\Raw_N}M(x),
+  \qquad
+  (x,m)\;\IC_{M N}\;(y,n)
+  \quad\text{iff}\quad x\;\IC_N\;y.
+\]
+Thus two proofs that the same individual is, for example, handsome do not
+create two modified-noun instances merely because the proof terms differ.
+\path{modifier_witnesses_do_not_count_twice} checks exactly that equality;
+\path{base_identity_lifts_to_modified_identity} lifts base identity to the
+modified noun.  The respectful projection back to the base noun is checked by
+\path{modified_to_base_raw_respects} and computes on embedded tokens by
+\path{modified_to_base_beta}.  This is a controlled treatment of modifier
+evidence, not a general assertion that all semantic modifiers are
+proof-irrelevant.
+
+For instance, two independent derivations that the same individual is a
+handsome man yield distinct raw evidence pairs but one modified-noun instance.
+The case is about the individuation of the modified common noun; it does not
+identify distinct individuals merely because they satisfy the same modifier.
+
+\subsection{Book/copredication}
+
+A raw book packages a physical and an informational component:
+\[
+  \Raw_{\mathsf{Book}}=\mathsf{Phys}\times\mathsf{Info},
+  \qquad
+  (p,i)\;\IC_{\mathsf{Book}}\;(p',i')
+  \quad\text{iff}\quad
+  p\;\IC_{\mathsf{Phys}}\;p'\ \wedge\ i\;\IC_{\mathsf{Info}}\;i'.
+\]
+Book identity is therefore conjunctive, while the two quotient observations
+remain distinct: \path{book_to_physical_raw_respects} licenses the physical
+projection and \path{book_to_informational_raw_respects} licenses the
+informational one.  Their beta lemmas,
+\path{book_to_physical_beta} and \path{book_to_informational_beta}, prove
+that each quotient-level projection computes as the corresponding raw
+projection on an embedded token.  This supports coordinated physical and
+informational observations of one book without claiming that quotient HITs
+alone provide a complete dot-type or coercion theory.
+
+The familiar test sentence ``John picked up and mastered three books'' combines
+physical predication with informational predication \cite{ChatzikyriakidisLuo2015}.
+The quotient analysis does not derive the dot-type account itself.  It states
+the additional identity condition under which the two projections concern the
+same book tokens, and it checks that both projections descend through the
+quotient interface.
+
+\begin{table}[H]
+\centering
+\small
+\caption{Linguistic tests and their checked Rocq anchors.}
+\label{tab:case-artifacts}
+\begin{tabularx}{\textwidth}{@{}>{\raggedright\arraybackslash}p{0.18\textwidth}>{\raggedright\arraybackslash}p{0.38\textwidth}X@{}}
+\toprule
+Case & Semantic distinction & Checked anchor \\
+\midrule
+Passenger & Same person is insufficient when journeys differ &
+\scriptsize\texttt{same\_person\_is\_not\_passenger\_identity}\newline
+\scriptsize\texttt{passenger\_identity\_path} \\
+Modified CN & Distinct modifier witnesses do not multiply an instance &
+\scriptsize\texttt{modifier\_witnesses\_do\_not\_count\_twice}\newline
+\scriptsize\texttt{modified\_to\_base\_beta} \\
+Book & Conjunctive book identity with two respectful projections &
+\scriptsize\texttt{book\_to\_physical\_beta}\newline
+\scriptsize\texttt{book\_to\_informational\_beta} \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\section{Verification Status}
+
+The current formal development is Coq/Rocq-first.  Plain Coq does not provide
+native quotient HITs, so the checked file represents the semantic interface,
+the respectfulness obligations, and the conditional converse theorem rather
+than a native HIT implementation.  The current build checks the Coq-facing
+entry point through the formal Makefile and records the remaining HIT-native
+work as explicit proof debt.
+
+For this submission, the required mechanisation gate is:
+\begin{quote}
+\small\texttt{make -C work/formal proof-assistant-sci}
+\end{quote}
+It first compiles the formal development with Rocq 9.0.1 and then checks the
+exact global assumptions of the packaged main theorem.  Cubical Agda is not
+part of that acceptance gate: a future Agda or HoTT port would be an
+independent replication of the quotient interface, not a condition for calling
+the present Rocq claims checked.
+
+The Coq signature requires an \path{is_hset} witness for every \path{qrec}
+target.  Rocq's \emph{Print Assumptions} command reports exactly five global
+dependencies for the packaged theorem: \path{qtype}, \path{embed}, \path{glue},
+\path{qrec}, and \path{qrec_beta}.  The three non-constructive principles remain
+quantified theorem premises, and no inverse-law axiom is reported.  The five
+dependencies remain interface parameters rather than a native implementation.
+
+The submission claim should therefore be stated in two layers.  The checked
+layer is the Rocq quotient-interface development and conditional converse for
+non-dependent set-valued observations.  The future layer is a native quotient-
+HIT realization, whether in a Rocq-compatible HoTT library or in another proof
+assistant, in which the quotient type former, path constructor, set
+truncation, and eliminator are supplied rather than axiomatized as an
+interface.
+
+\section{Limitations and Conclusion}
+
+The present artifact is a focused paper fragment rather than a finished journal
+submission.  The main remaining tasks are to expand the semantic comparison
+with the CN-as-types and dot-type literature, explain the linguistic payoff of
+each test in more detail, and keep engineering artifacts out of the main text.
+A native HIT realization remains future work, not a condition for the claims
+made here.
+
+The central conclusion is nevertheless stable: quotient HITs give a precise
+way to turn CN-as-setoids into CNs-as-quotient-HITs while preserving the
+identity-criterion insight that motivates common nouns as types.
+
+\section*{Reproducibility}
+
+The anonymized source package contains the Rocq development and the manuscript
+source.  The command \path{make -C work/formal proof-assistant-sci} compiles
+the Coq-facing development and audits the global assumptions of the packaged
+converse theorem; \path{make -C work/paper submission.pdf} builds this
+manuscript.  The separate JoLLI title page and declarations remain author-
+supplied material and are intentionally excluded from the anonymous review
+copy.
+
+Table~\ref{tab:artifact-map} maps each paper-facing claim to its executable
+artifact.  All paths are relative to the root of the accompanying source
+package.  A versioned public release is identified in the author materials and
+editorial metadata.  Its author-identifying URL is intentionally omitted from
+this anonymous copy to preserve blinded review.
+
+\begin{table}[H]
+\centering
+\small
+\caption{Executable evidence for the paper's formal claims.}
+\label{tab:artifact-map}
+\begin{tabularx}{\textwidth}{@{}>{\raggedright\arraybackslash}p{0.24\textwidth}>{\raggedright\arraybackslash}p{0.36\textwidth}X@{}}
+\toprule
+Paper claim & Artifact & Reproduction command \\
+\midrule
+Quotient interface; passenger, modified-CN, and book lemmas &
+\texttt{CNQuotientHit.v} &
+\texttt{make -C work/formal}\newline\texttt{proof-assistant-coq} \\
+Conditional converse representation &
+{\scriptsize\texttt{conditional\_observation\_}\newline\texttt{equivalence}} &
+\texttt{make -C work/formal}\newline\texttt{proof-assistant-sci} \\
+Exact global-assumption boundary &
+\texttt{AssumptionAudit.v} &
+\texttt{make -C work/formal}\newline\texttt{proof-assistant-coq-assumptions} \\
+JoLLI manuscript requirements &
+\texttt{submission.tex}; \texttt{preflight.sh} &
+\texttt{make -C work/paper}\newline\texttt{jolli-preflight} \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\appendix
+\section{Selected Rocq Evidence}
+
+This appendix is deliberately a readable extract, not a replacement for the
+complete source release.  It fixes the exact formal shape of the common-noun
+setoid, the postulated quotient-HIT interface, one negative passenger test,
+and one computation rule.  The complete files and build commands are listed
+in Table~\ref{tab:artifact-map}.
+
+\subsection{Setoids and the quotient interface}
+
+\begin{verbatim}
+Record CNSetoid := {
+  carrier : Type;
+  ic : carrier -> carrier -> Prop;
+  ic_refl : forall x, ic x x;
+  ic_sym : forall x y, ic x y -> ic y x;
+  ic_trans : forall x y z, ic x y -> ic y z -> ic x z
+}.
+
+Definition respects (C : CNSetoid) (B : Type)
+  (f : carrier C -> B) : Prop :=
+  forall x y, ic C x y -> f x = f y.
+
+Module QuotientHIT.
+  Parameter qtype : CNSetoid -> Type.
+  Parameter embed : forall C, carrier C -> qtype C.
+  Parameter glue : forall (C : CNSetoid) (x y : carrier C),
+    ic C x y -> embed C x = embed C y.
+  Parameter qrec : forall (C : CNSetoid) (B : Type),
+    is_hset B -> forall f : carrier C -> B,
+    respects C B f -> qtype C -> B.
+  Parameter qrec_beta : forall (C : CNSetoid) (B : Type)
+    (B_is_set : is_hset B) (f : carrier C -> B)
+    (r : respects C B f) (x : carrier C),
+    qrec C B B_is_set f r (embed C x) = f x.
+End QuotientHIT.
+\end{verbatim}
+
+The interface is explicit about its status: in plain Rocq these are parameters,
+not a claim that Rocq natively implements quotient HITs.  The assumption audit
+below establishes that the packaged main theorem has no additional global
+assumptions.
+
+\subsection{Passenger counterexample and quotient computation}
+
+\begin{verbatim}
+Lemma same_person_is_not_passenger_identity :
+  fst first_trip = fst second_trip /\
+  ~ same_passenger first_trip second_trip.
+Proof.
+  split; [reflexivity | intros H].
+  destruct H as [_ Hjourney]. discriminate Hjourney.
+Qed.
+
+Lemma modified_to_base_beta :
+  forall u : RawModified,
+    modified_to_base (embed ModifiedCN u) =
+      modified_to_base_raw u.
+Proof. intro u. apply qrec_beta. Qed.
+\end{verbatim}
+
+The first lemma formalizes the person-times distinction: a shared person
+component does not supply passenger identity when journeys differ.  The second
+is the point computation rule for the respectful projection from a modified
+common noun to its base noun.  The book projection beta lemmas are analogous
+and remain in the complete source.
+
+\subsection{Audited boundary}
+
+The following build target compiles the development and runs
+\path{Print Assumptions} on
+\path{conditional_observation_equivalence}.  Its required result is exactly
+the five quotient-interface constants \path{qtype}, \path{embed},
+\path{glue}, \path{qrec}, and \path{qrec_beta}.  Function extensionality,
+proof irrelevance, and quotient proposition induction occur as explicit
+premises of the conditional theorem, not as undeclared global axioms.
+\begin{quote}
+\small\texttt{make -C work/formal}\\
+\texttt{proof-assistant-sci}
+\end{quote}
+
+\begin{thebibliography}{9}
+
+\bibitem[Coquand et~al.(2018)Coquand, Huber, and M\"ortberg]{CoquandHuberMortberg2018}
+T. Coquand, S. Huber, and A. M{\"o}rtberg.
+\newblock On Higher Inductive Types in Cubical Type Theory.
+\newblock In \emph{Proceedings of the 33rd Annual ACM/IEEE Symposium on Logic
+in Computer Science (LICS 2018)}, 2018.
+\newblock arXiv:1802.01170.
+
+\bibitem[Univalent Foundations Program(2013)]{HoTTBook}
+The Univalent Foundations Program.
+\newblock \emph{Homotopy Type Theory: Univalent Foundations of Mathematics}.
+\newblock Institute for Advanced Study, 2013.
+
+\bibitem[Chatzikyriakidis and Luo(2015)]{ChatzikyriakidisLuo2015}
+S. Chatzikyriakidis and Z. Luo.
+\newblock Individuation Criteria, Dot-types and Copredication: A View from
+Modern Type Theories.
+\newblock In \emph{Proceedings of the 14th Meeting on the Mathematics of
+Language (MoL 2015)}, Chicago, 2015.
+
+\bibitem[Chatzikyriakidis and Luo(2018)]{ChatzikyriakidisLuo2018}
+S. Chatzikyriakidis and Z. Luo.
+\newblock Identity Criteria of Common Nouns and dot-types for Copredication.
+\newblock \emph{Oslo Studies in Language}, 10(2):121--141, 2018.
+
+\bibitem[Luo(2012)]{Luo2012CN}
+Z. Luo.
+\newblock Common Nouns as Types.
+\newblock In D. B{\'e}chet and A. Dikovsky, editors, \emph{Logical Aspects of
+Computational Linguistics (LACL 2012)}, LNCS 7351, pages 173--185. Springer,
+2012.
+
+\bibitem[Luo(2024)]{Luo2024HIT}
+Z. Luo.
+\newblock Common Nouns as Types: Higher Inductive Types in Type-Theoretical
+Semantics.
+\newblock Invited talk at Logic Colloquium 2024, Gothenburg, Sweden, June 2024.
+
+\bibitem[Lumsdaine and Shulman(2020)]{LumsdaineShulman2017}
+P. L. Lumsdaine and M. Shulman.
+\newblock Semantics of Higher Inductive Types.
+\newblock \emph{Math. Proc. Camb. Phil. Soc.}, 169:159--208, 2020.
+
+\end{thebibliography}
+
+\end{document}
